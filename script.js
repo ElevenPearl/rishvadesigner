@@ -34,7 +34,7 @@ document.addEventListener('DOMContentLoaded', () => {
             ]
         };
 
-        let orders = [];
+        let orders = JSON.parse(localStorage.getItem("orders")) || [];
 
         // Password for viewing measurements
         const ADMIN_PASSWORD = 'rishva123';
@@ -100,39 +100,39 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         orderForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const customerName = document.getElementById('customerName').value;
-            const customerPhone = document.getElementById('customerPhone').value;
-            const clothingType = document.getElementById('clothingType').value;
-            
-            const measurementData = {};
-            measurements[clothingType].forEach(field => {
-                const input = document.getElementById(field.name);
-                if (input) {
-                    measurementData[field.label] = input.value + '"';
-                }
-            });
-            
-            const order = {
-                id: Date.now(),
-                customerName,
-                customerPhone,
-                clothingType,
-                measurements: measurementData,
-                date: new Date().toLocaleDateString()
-            };
-            
-            orders.push(order);
-            
-            successMessage.style.display = 'block';
-            setTimeout(() => {
-                successMessage.style.display = 'none';
-            }, 3000);
-            
-            orderForm.reset();
-            measurementsSection.style.display = 'none';
-        });
+    e.preventDefault();
+
+    const customerName = document.getElementById('customerName').value;
+    const customerPhone = document.getElementById('customerPhone').value;
+    const clothingType = document.getElementById('clothingType').value;
+
+    const measurementData = {};
+    measurements[clothingType].forEach(field => {
+        const input = document.getElementById(field.name);
+        if (input) {
+            measurementData[field.label] = input.value + '"';
+        }
+    });
+
+    const order = {
+        id: Date.now(),
+        customerName,
+        customerPhone,
+        clothingType,
+        measurements: measurementData,
+        date: new Date().toLocaleDateString()
+    };
+
+    orders.push(order);
+    localStorage.setItem("orders", JSON.stringify(orders));
+
+    successMessage.style.display = 'block';
+    setTimeout(() => successMessage.style.display = 'none', 3000);
+
+    orderForm.reset();
+    measurementsSection.style.display = 'none';
+});
+
 
         viewMeasurementsBtn.addEventListener('click', function() {
             passwordModal.classList.add('active');
