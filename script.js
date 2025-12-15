@@ -1,3 +1,4 @@
+document.addEventListener('DOMContentLoaded', () => {
       const measurements = {
             kurti: [
                 { name: 'length', label: 'Length' },
@@ -209,4 +210,4 @@
                 ordersList.appendChild(orderCard);
             });
         }
-    
+});  
