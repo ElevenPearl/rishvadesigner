@@ -1,51 +1,42 @@
 document.addEventListener('DOMContentLoaded', () => {
-      const measurements = {
-            kurti: [
-                { name: 'length', label: 'Length' },
-                { name: 'shoulder', label: 'Shoulder' },
-                { name: 'bust', label: 'Bust' },
-                { name: 'waist', label: 'Waist' },
-                { name: 'hip', label: 'Hip' },
-                { name: 'armhole', label: 'Armhole' },
-                { name: 'sleeveLength', label: 'Sleeve Length' },
-                { name: 'sleeveCircumference', label: 'Sleeve Circumference' }
-            ],
-            pant: [
-                { name: 'waist', label: 'Waist' },
-                { name: 'hip', label: 'Hip' },
-                { name: 'length', label: 'Length' },
-                { name: 'inseam', label: 'Inseam' },
-                { name: 'thigh', label: 'Thigh' },
-                { name: 'knee', label: 'Knee' },
-                { name: 'ankle', label: 'Ankle' },
-                { name: 'rise', label: 'Rise' }
-            ],
-            salwar: [
-                { name: 'kurtiLength', label: 'Kurti Length' },
-                { name: 'shoulder', label: 'Shoulder' },
-                { name: 'bust', label: 'Bust' },
-                { name: 'waist', label: 'Waist' },
-                { name: 'hip', label: 'Hip' },
-                { name: 'sleeveLength', label: 'Sleeve Length' },
-                { name: 'salwarLength', label: 'Salwar Length' },
-                { name: 'salwarWaist', label: 'Salwar Waist' },
-                { name: 'salwarHip', label: 'Salwar Hip' },
-                { name: 'dupattaLength', label: 'Dupatta Length' }
-            ]
-        };
+const measurements = [
+    { name: 'shoulder', label: 'Shoulder' },
+    { name: 'upperBust', label: 'Upper Bust' },
+    { name: 'bust', label: 'Bust' },
+    { name: 'underBust', label: 'Under Bust' },
+    { name: 'waist', label: 'Waist' },
+    { name: 'hips', label: 'Hips' },
+    { name: 'length', label: 'Length' },
+    { name: 'neckDeep', label: 'Neck Deep' },
+    { name: 'backDeep', label: 'Back Deep' },
+    { name: 'armHole', label: 'Arm Hole' },
+    { name: 'sleeveLength', label: 'Sleeve Length' },
+    { name: 'biceps', label: 'Biceps' },
+    { name: 'elbow', label: 'Elbow' },
+    { name: 'handMori', label: 'Hand Mori' }
+];
 
-        let orders = JSON.parse(localStorage.getItem("orders")) || [];
-
+        let orders = [];
+let currentEditId = null;
+async function loadOrders() {
+    orders = [];
+    const snapshot = await fb.getDocs(fb.collection(db, "orders"));
+    snapshot.forEach(docSnap => {
+        orders.push({ id: docSnap.id, ...docSnap.data() });
+    });
+}
+        let isEditing = false;
         // Password for viewing measurements
-        const ADMIN_PASSWORD = 'rishva123';
+        const ADMIN_PASSWORD = '1';
 
         const clothingTypeSelect = document.getElementById('clothingType');
+        const otherTypeInput = document.getElementById('otherTypeInput');
         const measurementsSection = document.getElementById('measurementsSection');
         const measurementsFields = document.getElementById('measurementsFields');
         const orderForm = document.getElementById('orderForm');
         const successMessage = document.getElementById('successMessage');
         const ordersList = document.getElementById('ordersList');
-
+        const searchInput = document.getElementById('searchInput');
         const viewMeasurementsBtn = document.getElementById('viewMeasurementsBtn');
         const passwordModal = document.getElementById('passwordModal');
         const passwordInput = document.getElementById('passwordInput');
@@ -57,80 +48,113 @@ document.addEventListener('DOMContentLoaded', () => {
         const orderFormPage = document.getElementById('orderFormPage');
         const measurementsPage = document.getElementById('measurementsPage');
 
-        clothingTypeSelect.addEventListener('change', function() {
-            const selectedType = this.value;
-            
-            if (selectedType) {
-                measurementsSection.style.display = 'block';
-                generateMeasurementFields(selectedType);
-            } else {
-                measurementsSection.style.display = 'none';
-            }
-        });
+clothingTypeSelect.addEventListener('change', function() {
+    const selectedType = this.value;
 
-        function generateMeasurementFields(type) {
-            measurementsFields.innerHTML = '';
-            const fields = measurements[type];
-            
-            const grid = document.createElement('div');
-            grid.className = 'measurements-grid';
-            
-            fields.forEach(field => {
-                const formGroup = document.createElement('div');
-                formGroup.className = 'form-group';
-                
-                const label = document.createElement('label');
-                label.textContent = field.label;
-                label.setAttribute('for', field.name);
-                
-                const input = document.createElement('input');
-                input.type = 'number';
-                input.id = field.name;
-                input.name = field.name;
-                input.step = '0.5';
-                input.required = true;
-                input.placeholder = '0.0';
-                
-                formGroup.appendChild(label);
-                formGroup.appendChild(input);
-                grid.appendChild(formGroup);
-            });
-            
-            measurementsFields.appendChild(grid);
-        }
+    if (selectedType === 'other') {
+    otherTypeInput.style.display = 'block';
+    otherTypeInput.required = true;
 
-        orderForm.addEventListener('submit', function(e) {
+    measurementsSection.style.display = 'block';
+    generateMeasurementFields();
+    return;
+} else {
+    otherTypeInput.style.display = 'none';
+    otherTypeInput.required = false;
+    otherTypeInput.value = '';
+}
+
+    if (selectedType) {
+        measurementsSection.style.display = 'block';
+        generateMeasurementFields();
+    } else {
+        measurementsSection.style.display = 'none';
+    }
+});
+
+function generateMeasurementFields() {
+    measurementsFields.innerHTML = '';
+
+    const grid = document.createElement('div');
+    grid.className = 'measurements-grid';
+
+    measurements.forEach(field => {
+        const formGroup = document.createElement('div');
+        formGroup.className = 'form-group';
+
+        const label = document.createElement('label');
+        label.textContent = field.label;
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.id = field.name;
+        input.name = field.name;
+        input.step = '0.5';
+        input.placeholder = '0.0';
+
+        formGroup.appendChild(label);
+        formGroup.appendChild(input);
+        grid.appendChild(formGroup);
+    });
+
+    measurementsFields.appendChild(grid);
+}
+
+        orderForm.addEventListener('submit', async function(e) {
     e.preventDefault();
 
     const customerName = document.getElementById('customerName').value;
     const customerPhone = document.getElementById('customerPhone').value;
-    const clothingType = document.getElementById('clothingType').value;
+    const notes = document.getElementById('notes').value;
+    let clothingType = clothingTypeSelect.value;
 
+// 🔥 FIXED LOGIC
+if (clothingType === 'other') {
+    clothingType = otherTypeInput.value.trim() || 'Other';
+} else {
+    clothingType = clothingTypeSelect.options[clothingTypeSelect.selectedIndex].text;
+}
     const measurementData = {};
-    measurements[clothingType].forEach(field => {
+    measurements.forEach(field => {
         const input = document.getElementById(field.name);
         if (input) {
-            measurementData[field.label] = input.value + '"';
+            if (input.value) {
+    measurementData[field.label] = input.value + ' inch';
+}
         }
     });
 
     const order = {
-        id: Date.now(),
-        customerName,
-        customerPhone,
-        clothingType,
-        measurements: measurementData,
-        date: new Date().toLocaleDateString()
-    };
+    customerName,
+    customerPhone,
+    clothingType,
+    measurements: measurementData,
+    notes: notes,
+    date: new Date().toLocaleDateString()
+};
 
-    orders.push(order);
-    localStorage.setItem("orders", JSON.stringify(orders));
+if (isEditing && currentEditId) {
+    await fb.deleteDoc(fb.doc(db, "orders", currentEditId));
+}
+
+    await fb.addDoc(fb.collection(db, "orders"), order);
 
     successMessage.style.display = 'block';
     setTimeout(() => successMessage.style.display = 'none', 3000);
 
     orderForm.reset();
-    measurementsSection.style.display = 'none';
+measurementsSection.style.display = 'none';
+
+if (isEditing) {
+    isEditing = false;
+    currentEditId = null;
+
+    // Go back to measurements page
+    orderFormPage.classList.add('hidden');
+    measurementsPage.classList.add('active');
+
+    displayOrders();
+}
 });
 
 
@@ -179,35 +203,97 @@ document.addEventListener('DOMContentLoaded', () => {
             displayOrders();
         }
 
-        function displayOrders() {
-            ordersList.innerHTML = '';
-            
-            if (orders.length === 0) {
-                ordersList.innerHTML = '<div class="no-orders">No orders saved yet.</div>';
-                return;
+        async function displayOrders() {
+            await loadOrders();
+    ordersList.innerHTML = '';
+
+    const searchValue = searchInput.value.toLowerCase();
+
+    const filteredOrders = orders.filter(order => 
+        order.customerName.toLowerCase().includes(searchValue) ||
+        order.customerPhone.includes(searchValue)
+    );
+
+    if (filteredOrders.length === 0) {
+        ordersList.innerHTML = '<div class="no-orders">No matching orders found.</div>';
+        return;
+    }
+
+    filteredOrders.forEach(order => {
+        const orderCard = document.createElement('div');
+        orderCard.className = 'order-card';
+
+        let measurementsHTML = '<div style="margin-top: 10px;">';
+
+if (order.measurements) {
+    // Works for both old and new data
+    for (const key in order.measurements) {
+        const value = order.measurements[key];
+        measurementsHTML += `<span class="measurement-item"><strong>${key}:</strong> ${value}</span>`;
+    }
+}
+
+measurementsHTML += '</div>';
+
+        orderCard.innerHTML = `
+            <h3>${order.customerName} - ${order.clothingType.toUpperCase()}</h3>
+            <div class="order-details">
+                <p><strong>Phone:</strong> ${order.customerPhone}</p>
+                <p><strong>Date:</strong> ${order.date}</p>
+                <p><strong>Measurements:</strong></p>
+                ${measurementsHTML}
+                ${order.notes ? `<p><strong>Notes:</strong> ${order.notes}</p>` : ''}
+            </div>
+            <button onclick="editOrder('${order.id}')">Edit</button>
+        `;
+
+        ordersList.appendChild(orderCard);
+    });
+}
+searchInput.addEventListener('input', displayOrders);
+
+window.editOrder = function(id) {
+    currentEditId = id;
+    const order = orders.find(o => o.id === id);
+    if (!order) return;
+
+    orderFormPage.classList.remove('hidden');
+    measurementsPage.classList.remove('active');
+
+    document.getElementById('customerName').value = order.customerName;
+    document.getElementById('customerPhone').value = order.customerPhone;
+
+    const clothingTypeSelect = document.getElementById('clothingType');
+    const otherTypeInput = document.getElementById('otherTypeInput');
+
+    if (
+        ['kurti','pant','gown','lehenga','blouse','jacket','kaftan']
+        .includes(order.clothingType.toLowerCase())
+    ) {
+        clothingTypeSelect.value = order.clothingType.toLowerCase();
+        clothingTypeSelect.dispatchEvent(new Event('change'));
+        otherTypeInput.style.display = 'none';
+    } else {
+        clothingTypeSelect.value = 'other';
+        otherTypeInput.style.display = 'block';
+        otherTypeInput.required = true;
+        otherTypeInput.value = order.clothingType;
+    }
+
+    measurementsSection.style.display = 'block';
+    generateMeasurementFields();
+
+    setTimeout(() => {
+        measurements.forEach(field => {
+            const input = document.getElementById(field.name);
+            if (input && order.measurements[field.label]) {
+                input.value = parseFloat(order.measurements[field.label]);
             }
-            
-            orders.forEach(order => {
-                const orderCard = document.createElement('div');
-                orderCard.className = 'order-card';
-                
-                let measurementsHTML = '<div style="margin-top: 10px;">';
-                for (const [key, value] of Object.entries(order.measurements)) {
-                    measurementsHTML += `<span class="measurement-item"><strong>${key}:</strong> ${value}</span>`;
-                }
-                measurementsHTML += '</div>';
-                
-                orderCard.innerHTML = `
-                    <h3>${order.customerName} - ${order.clothingType.toUpperCase()}</h3>
-                    <div class="order-details">
-                        <p><strong>Phone:</strong> ${order.customerPhone}</p>
-                        <p><strong>Date:</strong> ${order.date}</p>
-                        <p><strong>Measurements:</strong></p>
-                        ${measurementsHTML}
-                    </div>
-                `;
-                
-                ordersList.appendChild(orderCard);
-            });
-        }
+        });
+    }, 100);
+
+    document.getElementById('notes').value = order.notes || '';
+
+    isEditing = true;
+}
 });  
