@@ -5,13 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Rishva Designer - Order Form</title>
     <link rel="stylesheet" href="style.css">
-<script src="script.js"></script>    
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 </head>
 <body>
-    <div class="container">
+    <div class="container">.
+        <div class="logo-container">
+    <img src="logo.png" alt="Brand Logo" class="logo">
+</div>
         <!-- Order Form Page -->
         <div id="orderFormPage" class="order-form-page">
-            <h1>Rishva Designer</h1>
+           <center><h1>Rishva Designer</h1></center> 
             <p class="subtitle">Custom Clothing Measurements</p>
 
             <form id="orderForm">
@@ -32,11 +35,19 @@
                     <div class="form-group">
                         <label for="clothingType">Select Type *</label>
                         <select id="clothingType" required>
-                            <option value="">-- Select Clothing Type --</option>
-                            <option value="kurti">Kurti</option>
-                            <option value="pant">Pant</option>
-                            <option value="salwar">Salwar</option>
-                        </select>
+    <option value="">-- Select Clothing Type --</option>
+    <option value="kurti">Kurti</option>
+    <option value="pant">Pant</option>
+    <option value="gown">Gown</option>
+    <option value="lehenga">Lehenga</option>
+    <option value="blouse">Blouse</option>
+    <option value="jacket">Jacket</option>
+    <option value="kaftan">Kaftan</option>
+    <option value="other">Other</option>
+</select>
+
+<!-- Add this just below select -->
+<input type="text" id="otherTypeInput" placeholder="Enter clothing type" style="display:none; margin-top:10px;">
                     </div>
                 </div>
 
@@ -44,7 +55,10 @@
                     <h2>Body Measurements (in inches)</h2>
                     <div id="measurementsFields"></div>
                 </div>
-
+<div class="form-group">
+    <label for="notes">Notes (Optional)</label>
+    <textarea id="notes" rows="3" placeholder="Add any special instructions..."></textarea>
+</div>
                 <button type="submit">Save Order</button>
             </form>
 
@@ -60,6 +74,7 @@
             <button type="button" class="back-btn" id="backBtn">← Back to Form</button>
             
             <h1>Saved Measurements</h1>
+            <input type="text" id="searchInput" placeholder="Search by name or phone..." style="margin-bottom:15px;">
             <p class="subtitle">All Customer Orders</p>
 
             <div id="ordersList"></div>
@@ -79,6 +94,29 @@
         </div>
     </div>
 
-    
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getFirestore, collection, addDoc, getDocs, deleteDoc, doc } 
+from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+// 🔥 Your Firebase Config
+const firebaseConfig = {
+  apiKey: "AIzaSyDr10gyz4RdkIpfw8F030Tmsgx0EJ12hjg",
+  authDomain: "rishva-designer.firebaseapp.com",
+  projectId: "rishva-designer",
+  storageBucket: "rishva-designer.firebasestorage.app",
+  messagingSenderId: "993447259894",
+  appId: "1:993447259894:web:1ad99e5e2cf4d7e198c6d7"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+// make globally available
+window.db = db;
+window.fb = { collection, addDoc, getDocs, deleteDoc, doc };
+</script>
+
+<script type="module" src="script.js"></script>    
 </body>
 </html>
