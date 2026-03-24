@@ -27,7 +27,7 @@ async function loadOrders() {
 }
         let isEditing = false;
         // Password for viewing measurements
-        const ADMIN_PASSWORD = '1';
+        const ADMIN_PASSWORD = 'riya123';
 
         const clothingTypeSelect = document.getElementById('clothingType');
         const otherTypeInput = document.getElementById('otherTypeInput');
